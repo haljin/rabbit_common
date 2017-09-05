@@ -11,7 +11,7 @@
 %% The Original Code is RabbitMQ.
 %%
 %% The Initial Developer of the Original Code is GoPivotal, Inc.
-%% Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+%% Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 %%
 
 -module(rabbit_auth_backend_dummy).
@@ -24,11 +24,7 @@
 -export([user_login_authentication/2, user_login_authorization/1,
          check_vhost_access/3, check_resource_access/3]).
 
--ifdef(use_specs).
-
--spec(user/0 :: () -> rabbit_types:user()).
-
--endif.
+-spec user() -> rabbit_types:user().
 
 %% A user to be used by the direct client when permission checks are
 %% not needed. This user can do anything AMQPish.

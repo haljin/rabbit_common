@@ -10,16 +10,16 @@
 %%
 %% The Original Code is RabbitMQ.
 %%
-%% The Initial Developer of the Original Code is GoPivotal, Inc.
+%% The Initial Developer of the Original Code is Pivotal Software, Inc.
 %% Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 %%
 
--module(rabbit_runtime_parameter).
+-define(DEFAULT_MEMORY_CHECK_INTERVAL, 1000).
+-define(ONE_MiB, 1048576).
 
--type(validate_results() ::
-        'ok' | {error, string(), [term()]} | [validate_results()]).
-
--callback validate(rabbit_types:vhost(), binary(), binary(),
-                   term(), rabbit_types:user()) -> validate_results().
--callback notify(rabbit_types:vhost(), binary(), binary(), term()) -> 'ok'.
--callback notify_clear(rabbit_types:vhost(), binary(), binary()) -> 'ok'.
+%% For an unknown OS, we assume that we have 1GB of memory. It'll be
+%% wrong. Scale by vm_memory_high_watermark in configuration to get a
+%% sensible value.
+-define(MEMORY_SIZE_FOR_UNKNOWN_OS, 1073741824).
+-define(DEFAULT_VM_MEMORY_HIGH_WATERMARK, 0.4).
+-define(MAX_VM_MEMORY_HIGH_WATERMARK, 1.0).

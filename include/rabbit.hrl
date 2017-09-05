@@ -11,8 +11,10 @@
 %% The Original Code is RabbitMQ.
 %%
 %% The Initial Developer of the Original Code is Pivotal Software, Inc.
-%% Copyright (c) 2007-2015 Pivotal Software, Inc.  All rights reserved.
+%% Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 %%
+
+-include("old_builtin_types.hrl").
 
 %% Passed around most places
 -record(user, {username,
@@ -76,7 +78,8 @@
           policy,                      %% durable, implicit update as above
           gm_pids,                     %% transient
           decorators,                  %% transient, recalculated as above
-          state}).                     %% durable (have we crashed?)
+          state,                       %% durable (have we crashed?)
+          policy_version}).
 
 -record(exchange_serial, {name, next}).
 
@@ -95,7 +98,7 @@
 -record(trie_edge, {exchange_name, node_id, word}).
 -record(trie_binding, {exchange_name, node_id, destination, arguments}).
 
--record(listener, {node, protocol, host, ip_address, port}).
+-record(listener, {node, protocol, host, ip_address, port, opts = []}).
 
 -record(runtime_parameters, {key, value}).
 
@@ -129,7 +132,7 @@
 
 %%----------------------------------------------------------------------------
 
--define(COPYRIGHT_MESSAGE, "Copyright (C) 2007-2016 Pivotal Software, Inc.").
+-define(COPYRIGHT_MESSAGE, "Copyright (C) 2007-2017 Pivotal Software, Inc.").
 -define(INFORMATION_MESSAGE, "Licensed under the MPL.  See http://www.rabbitmq.com/").
 -define(OTP_MINIMUM, "R16B03").
 -define(ERTS_MINIMUM, "5.10.4").
@@ -144,14 +147,18 @@
 -define(EMPTY_FRAME_SIZE, 8).
 
 -define(MAX_WAIT, 16#ffffffff).
+-define(SUPERVISOR_WAIT,
+        rabbit_misc:get_env(rabbit, supervisor_shutdown_timeout, infinity)).
+-define(WORKER_WAIT,
+        rabbit_misc:get_env(rabbit, worker_shutdown_timeout, 30000)).
 
 -define(HIBERNATE_AFTER_MIN,        1000).
 -define(DESIRED_HIBERNATE,         10000).
--define(CREDIT_DISC_BOUND,   {2000, 500}).
+-define(CREDIT_DISC_BOUND,   {4000, 800}).
 %% When we discover that we should write some indices to disk for some
 %% betas, the IO_BATCH_SIZE sets the number of betas that we must be
 %% due to write indices for before we do any work at all.
--define(IO_BATCH_SIZE, 2048). %% next power-of-2 after ?CREDIT_DISC_BOUND
+-define(IO_BATCH_SIZE, 4096). %% next power-of-2 after ?CREDIT_DISC_BOUND
 
 -define(INVALID_HEADERS_KEY, <<"x-invalid-headers">>).
 -define(ROUTING_HEADERS, [<<"CC">>, <<"BCC">>]).

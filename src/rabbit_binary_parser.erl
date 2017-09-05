@@ -11,7 +11,7 @@
 %% The Original Code is RabbitMQ.
 %%
 %% The Initial Developer of the Original Code is GoPivotal, Inc.
-%% Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+%% Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 %%
 
 -module(rabbit_binary_parser).
@@ -24,17 +24,15 @@
 
 %%----------------------------------------------------------------------------
 
--ifdef(use_specs).
-
--spec(parse_table/1 :: (binary()) -> rabbit_framing:amqp_table()).
--spec(ensure_content_decoded/1 ::
-        (rabbit_types:content()) -> rabbit_types:decoded_content()).
--spec(clear_decoded_content/1 ::
-        (rabbit_types:content()) -> rabbit_types:undecoded_content()).
--spec(validate_utf8/1 :: (binary()) -> 'ok' | 'error').
--spec(assert_utf8/1 :: (binary()) -> 'ok').
-
--endif.
+-spec parse_table(binary()) -> rabbit_framing:amqp_table().
+-spec ensure_content_decoded
+        (rabbit_types:content()) ->
+            rabbit_types:decoded_content().
+-spec clear_decoded_content
+        (rabbit_types:content()) ->
+            rabbit_types:undecoded_content().
+-spec validate_utf8(binary()) -> 'ok' | 'error'.
+-spec assert_utf8(binary()) -> 'ok'.
 
 %%----------------------------------------------------------------------------
 
@@ -70,7 +68,12 @@ parse_table(<<>>) ->
 ?SIMPLE_PARSE_TABLE($d, Value:64/float, double);
 ?SIMPLE_PARSE_TABLE($f, Value:32/float, float);
 
+%% yes, both 'l' and 'L' fields are decoded to 64-bit signed values;
+%% see https://github.com/rabbitmq/rabbitmq-server/issues/1093#issuecomment-276351183,
+%% http://www.rabbitmq.com/amqp-0-9-1-errata.html, and section
+%% 4.2.1 of the spec for details.
 ?SIMPLE_PARSE_TABLE($l, Value:64/signed, long);
+?SIMPLE_PARSE_TABLE($L, Value:64/signed, long);
 
 
 parse_table(<<NLen:8/unsigned, NameString:NLen/binary,
@@ -122,7 +125,7 @@ parse_array(<<>>) ->
 ?SIMPLE_PARSE_ARRAY($f, Value:32/float, float);
 
 ?SIMPLE_PARSE_ARRAY($l, Value:64/signed, long);
-
+?SIMPLE_PARSE_ARRAY($L, Value:64/signed, long);
 
 
 parse_array(<<$t, Value:8/unsigned, Rest/binary>>) ->

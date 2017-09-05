@@ -118,7 +118,6 @@
 
 -define(SUPERVISOR, supervisor2).
 -define(GEN_SERVER, gen_server2).
--define(PG2,        pg2_fixed).
 -define(SUP_MODULE, mirrored_supervisor_sups).
 
 -define(TABLE, mirrored_sup_childspec).
@@ -150,10 +149,6 @@
                 tx_fun,
                 initial_childspecs,
                 child_order}).
-
-%%----------------------------------------------------------------------------
-
--ifdef(use_specs).
 
 %%--------------------------------------------------------------------------
 %% Callback behaviour
@@ -199,15 +194,6 @@
 
 -spec create_tables() -> Result when
       Result :: 'ok'.
-
--else.
-
--export([behaviour_info/1]).
-
-behaviour_info(callbacks) -> [{init,1}];
-behaviour_info(_Other)    -> undefined.
-
--endif.
 
 %%----------------------------------------------------------------------------
 
@@ -267,7 +253,7 @@ fold(FunAtom, Sup, AggFun) ->
     Group = call(Sup, group),
     lists:foldl(AggFun, [],
                 [apply(?SUPERVISOR, FunAtom, [D]) ||
-                    M <- ?PG2:get_members(Group),
+                    M <- pg2:get_members(Group),
                     D <- [delegate(M)]]).
 
 child(Sup, Id) ->
@@ -299,9 +285,9 @@ handle_call({init, Overall}, _From,
                            tx_fun             = TxFun,
                            initial_childspecs = ChildSpecs}) ->
     process_flag(trap_exit, true),
-    ?PG2:create(Group),
-    ok = ?PG2:join(Group, Overall),
-    Rest = ?PG2:get_members(Group) -- [Overall],
+    pg2:create(Group),
+    ok = pg2:join(Group, Overall),
+    Rest = pg2:get_members(Group) -- [Overall],
     case Rest of
         [] -> TxFun(fun() -> delete_all(Group) end);
         _  -> ok
@@ -377,7 +363,7 @@ handle_info({'DOWN', _Ref, process, Pid, _Reason},
                            child_order = ChildOrder}) ->
     %% TODO load balance this
     %% No guarantee pg2 will have received the DOWN before us.
-    R = case lists:sort(?PG2:get_members(Group)) -- [Pid] of
+    R = case lists:sort(pg2:get_members(Group)) -- [Pid] of
             [O | _] -> ChildSpecs =
                            TxFun(fun() -> update_all(O, Pid) end),
                        [start(Delegate, ChildSpec)
@@ -402,7 +388,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%----------------------------------------------------------------------------
 
 tell_all_peers_to_die(Group, Reason) ->
-    [cast(P, {die, Reason}) || P <- ?PG2:get_members(Group) -- [self()]].
+    [cast(P, {die, Reason}) || P <- pg2:get_members(Group) -- [self()]].
 
 maybe_start(Group, TxFun, Overall, Delegate, ChildSpec) ->
     try TxFun(fun() -> check_start(Group, Overall, Delegate, ChildSpec) end) of
