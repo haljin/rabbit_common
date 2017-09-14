@@ -11,14 +11,12 @@
 %% The Original Code is RabbitMQ.
 %%
 %% The Initial Developer of the Original Code is GoPivotal, Inc.
-%% Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+%% Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 %%
 
 -module(rabbit_types).
 
 -include("rabbit.hrl").
-
--ifdef(use_specs).
 
 -export_type([maybe/1, info/0, infos/0, info_key/0, info_keys/0,
               message/0, msg_id/0, basic_message/0,
@@ -100,8 +98,8 @@
 -type(listener() ::
         #listener{node     :: node(),
                   protocol :: atom(),
-                  host     :: rabbit_networking:hostname(),
-                  port     :: rabbit_networking:ip_port()}).
+                  host     :: rabbit_net:hostname(),
+                  port     :: rabbit_net:ip_port()}).
 
 -type(binding_source() :: rabbit_exchange:name()).
 -type(binding_destination() :: rabbit_amqqueue:name() | rabbit_exchange:name()).
@@ -164,5 +162,3 @@
 
 -type(proc_name() :: term()).
 -type(proc_type_and_name() :: {atom(), proc_name()}).
-
--endif. % use_specs

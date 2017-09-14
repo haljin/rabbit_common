@@ -11,15 +11,13 @@
 %% The Original Code is RabbitMQ.
 %%
 %% The Initial Developer of the Original Code is GoPivotal, Inc.
-%% Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+%% Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 %%
 -module(app_utils).
 
 -export([load_applications/1, start_applications/1, start_applications/2,
          stop_applications/1, stop_applications/2, app_dependency_order/2,
          app_dependencies/1]).
-
--ifdef(use_specs).
 
 -type error_handler() :: fun((atom(), any()) -> 'ok').
 
@@ -30,8 +28,6 @@
 -spec stop_applications([atom()], error_handler())  -> 'ok'.
 -spec app_dependency_order([atom()], boolean())     -> [digraph:vertex()].
 -spec app_dependencies(atom())                      -> [atom()].
-
--endif.
 
 %%---------------------------------------------------------------------------
 %% Public API
@@ -62,7 +58,10 @@ start_applications(Apps, ErrorHandler) ->
 
 stop_applications(Apps, ErrorHandler) ->
     manage_applications(fun lists:foldr/3,
-                        fun application:stop/1,
+                        fun(App) ->
+                            rabbit_log:info("Stopping application '~s'", [App]),
+                            application:stop(App)
+                        end,
                         fun application:start/1,
                         not_started,
                         ErrorHandler,

@@ -14,12 +14,21 @@
 %% Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 %%
 
--module(rabbit_runtime_parameter).
+-module(rabbit_channel_common).
 
--type(validate_results() ::
-        'ok' | {error, string(), [term()]} | [validate_results()]).
+-export([do/2, do/3, do_flow/3, ready_for_close/1]).
 
--callback validate(rabbit_types:vhost(), binary(), binary(),
-                   term(), rabbit_types:user()) -> validate_results().
--callback notify(rabbit_types:vhost(), binary(), binary(), term()) -> 'ok'.
--callback notify_clear(rabbit_types:vhost(), binary(), binary()) -> 'ok'.
+do(Pid, Method) ->
+    do(Pid, Method, none).
+
+do(Pid, Method, Content) ->
+    gen_server2:cast(Pid, {method, Method, Content, noflow}).
+
+do_flow(Pid, Method, Content) ->
+    %% Here we are tracking messages sent by the rabbit_reader
+    %% process. We are accessing the rabbit_reader process dictionary.
+    credit_flow:send(Pid),
+    gen_server2:cast(Pid, {method, Method, Content, flow}).
+
+ready_for_close(Pid) ->
+    gen_server2:cast(Pid, ready_for_close).

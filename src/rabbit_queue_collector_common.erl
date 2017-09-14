@@ -14,12 +14,11 @@
 %% Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 %%
 
--module(rabbit_runtime_parameter).
+-module(rabbit_queue_collector_common).
 
--type(validate_results() ::
-        'ok' | {error, string(), [term()]} | [validate_results()]).
+-export([delete_all/1]).
 
--callback validate(rabbit_types:vhost(), binary(), binary(),
-                   term(), rabbit_types:user()) -> validate_results().
--callback notify(rabbit_types:vhost(), binary(), binary(), term()) -> 'ok'.
--callback notify_clear(rabbit_types:vhost(), binary(), binary()) -> 'ok'.
+-spec delete_all(pid()) -> 'ok'.
+
+delete_all(CollectorPid) ->
+    gen_server:call(CollectorPid, delete_all, infinity).
